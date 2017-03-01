@@ -30,16 +30,25 @@ export class Endpoint {
     this.url = url;
   }
 
-  list(params) {
-    return this._prepareRequest(agent.get(this.url)).query(params);
+  _addDynamicHeader(request, headers) {
+    if(headers) {
+      for(let key in headers) {
+        request.set(key, headers[key]);
+      }
+    }
+    return request;
   }
 
-  retrieve(id) {
-    return this._prepareRequest(agent.get(this._getObjectURL(id)));
+  list(params, headers) {
+    return this._addDynamicHeader(this._prepareRequest(agent.get(this.url)).query(params), headers);
   }
 
-  create(conf) {
-    return this._prepareRequest(agent.post(this.url)).send(conf);
+  retrieve(id, headers) {
+    return this._addDynamicHeader(this._prepareRequest(agent.get(this._getObjectURL(id))), headers);
+  }
+
+  create(conf, headers) {
+    return this._addDynamicHeader(this._prepareRequest(agent.post(this.url)).send(conf), headers);
   }
 
   update(conf, id, method='put') {
@@ -53,7 +62,7 @@ export class Endpoint {
     request = this._setCSRFHeader(request);
     return request;
   }
-  
+
   _getObjectURL(id) {
     let slash = '';
     if (!this.url.endsWith('/')) {
@@ -239,7 +248,7 @@ export class ItemReducer extends BaseReducer {
 
     } else if (action.type === this.actionTypes.list_success) {
       if (Array.isArray(action.payload)){
-        return [...action.payload];  
+        return [...action.payload];
       }
       return action.payload;
     }
